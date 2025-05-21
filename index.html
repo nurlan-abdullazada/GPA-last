@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>M1 GPA Calculator — Semester 2 (UFAZ Example)</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 20px;
+    }
+    table {
+      border-collapse: collapse;
+      margin-bottom: 30px;
+      width: 100%;
+      max-width: 800px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 6px 10px;
+      text-align: center;
+    }
+    th {
+      background-color: #f0f0f0;
+    }
+    .matiere-title {
+      text-align: left;
+      font-weight: bold;
+      background-color: #e0e0e0;
+    }
+    input[type="number"] {
+      width: 60px;
+    }
+    h2, h3 {
+      margin-top: 40px;
+    }
+    .overall {
+      font-size: 1.2em;
+      font-weight: bold;
+    }
+  </style>
+
+  <script>
+    // Updated “matieres” array for Semester 2
+    // Each entry has: name, ECTS, partials[] with { name, coef }
+    // Make sure total ECTS sums to 30.
+    const matieres = [
+      {
+        name: "Operational Research and Modeling",
+        ECTS: 3,
+        partials: [
+          { name: "Contrôle terminal", coef: 1.5 },
+          { name: "Évaluation en ligne", coef: 1.5 },
+        ]
+      },
+      {
+        name: "Data Mining and Processing",
+        ECTS: 3,
+        partials: [
+          { name: "TP noté", coef: 1 },
+          { name: "Soutenance de Projet", coef: 1 },
+          { name: "Examen écrit individuel", coef: 1 }
+        ]
+      },
+      {
+        name: "Multi-agent Systems & Collective Intelligence",
+        ECTS: 3,
+        partials: [
+          { name: "Présentation", coef: 1 },
+          { name: "Rapport bibliographique", coef: 1 },
+          { name: "Projet", coef: 1 }
+        ]
+      },
+      {
+        name: "Management & Processing of Massive Data",
+        ECTS: 3,
+        partials: [
+          { name: "Practical work", coef: 1 },
+          { name: "Midterm", coef: 1 },
+          { name: "Final exam", coef: 1 }
+        ]
+      },
+      {
+        name: "Parallel Programming",
+        ECTS: 3,
+        partials: [
+          { name: "Contrôle terminal", coef: 1 },
+          { name: "Évaluation en ligne", coef: 1 },
+          { name: "Mini-projet", coef: 1 }
+        ]
+      },
+      {
+        name: "Distributed Algorithms",
+        ECTS: 3,
+        partials: [
+          { name: "Projet", coef: 2 },
+          { name: "Soutenances", coef: 3 },
+          { name: "Examen écrit", coef: 5 }
+        ]
+      },
+      {
+        name: "Network Services",
+        ECTS: 3,
+        partials: [
+          { name: "Contrôle terminal", coef: 1 },
+          { name: "Évaluation en ligne", coef: 1 },
+          { name: "Mini-projet", coef: 1 }
+        ]
+      },
+      {
+        name: "English 2",
+        ECTS: 3,
+        partials: [
+          { name: "Contrôle terminal", coef: 1.25 },
+          { name: "Devoir rendu", coef: 0.5 },
+          { name: "Oral", coef: 1.25 }
+        ]
+      },
+      {
+        name: "Research Project Work",
+        ECTS: 6,
+        partials: [
+          { name: "Présentation Mi-Projet", coef: 2 },
+          { name: "Présentation Projet",    coef: 2 },
+          { name: "Rapport",                coef: 2 }
+        ]
+      }
+    ];
+
+    // Called whenever user updates a score input
+    function recalcAll() {
+      const totalECTS = 30; // sum of all ECTS for Semester 2
+      let sumOfWeighted = 0; 
+
+      for (let m = 0; m < matieres.length; m++) {
+        const mat = matieres[m];
+        let partialSum = 0;  
+        let partialCoeffs = 0;
+
+        // Sum up partial scores × coefficients
+        for (let p = 0; p < mat.partials.length; p++) {
+          let inputId = `score-m${m}-p${p}`;
+          let scoreVal = parseFloat(document.getElementById(inputId).value) || 0;
+          let c = mat.partials[p].coef;
+          partialSum    += scoreVal * c;
+          partialCoeffs += c;
+        }
+
+        // Matière average out of 20
+        let matiereAvg = (partialCoeffs > 0) ? (partialSum / partialCoeffs) : 0;
+        document.getElementById(`avg-m${m}`).textContent = matiereAvg.toFixed(2);
+
+        // Weighted sum for global GPA (avg × ECTS)
+        sumOfWeighted += matiereAvg * mat.ECTS;
+      }
+
+      // Overall GPA out of 20
+      let overallGPA = sumOfWeighted / totalECTS;
+      document.getElementById("overallGPA").textContent = overallGPA.toFixed(2);
+    }
+
+    // Build the tables dynamically
+    window.onload = function() {
+      let container = document.getElementById("container");
+
+      matieres.forEach((mat, mIndex) => {
+        let table = document.createElement("table");
+
+        // Matière title row
+        let titleRow = document.createElement("tr");
+        let titleCell = document.createElement("td");
+        titleCell.colSpan = 3;
+        titleCell.className = "matiere-title";
+        titleCell.textContent = `${mat.name} — ${mat.ECTS} ECTS`;
+        titleRow.appendChild(titleCell);
+        table.appendChild(titleRow);
+
+        // Header row
+        let header = document.createElement("tr");
+        header.innerHTML = `
+          <th>Évaluation</th>
+          <th>Coef</th>
+          <th>Note (0-20)</th>
+        `;
+        table.appendChild(header);
+
+        // Partial‐evaluation rows
+        mat.partials.forEach((part, pIndex) => {
+          let row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${part.name}</td>
+            <td>${part.coef}</td>
+            <td>
+              <input 
+                type="number" 
+                min="0" max="20" step="0.1"
+                id="score-m${mIndex}-p${pIndex}"
+                oninput="recalcAll()" 
+              />
+            </td>
+          `;
+          table.appendChild(row);
+        });
+
+        // Matière average row
+        let avgRow = document.createElement("tr");
+        avgRow.innerHTML = `
+          <td colspan="2"><strong>Matière Average</strong></td>
+          <td><span id="avg-m${mIndex}">0.00</span> / 20</td>
+        `;
+        table.appendChild(avgRow);
+
+        container.appendChild(table);
+      });
+
+      // Initial calculation
+      recalcAll();
+    };
+  </script>
+</head>
+<body>
+
+  <h1>Master 1 – Data Sciences: Semester&nbsp;2 GPA Calculator</h1>
+  <p>
+    Enter your scores (0–20) for each partial evaluation.  
+    The Matière averages and overall GPA will update automatically.
+  </p>
+
+  <!-- Container where we dynamically insert tables for each Matière -->
+  <div id="container"></div>
+
+  <h2>Overall GPA</h2>
+  <p class="overall">
+    <span id="overallGPA">0.00</span> / 20
+  </p>
+
+</body>
+</html>
